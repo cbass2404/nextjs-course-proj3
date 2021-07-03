@@ -1168,3 +1168,80 @@ export default FeedbackPage;
 ```
 
 ### Creating and using Dynamic API Routes
+
+-   done in much the same way as nextjs frontend routing
+-   can gain access to parameters through the req object just like in standard nodejs
+
+```javascript
+// /api/[feedbackId].js
+import { buildFeedbackPath, extractFeedback } from './feedback';
+
+const handler = (req, res) => {
+    // req has body/method/query like standard nodejs
+    const feedbackId = req.query.feedbackId;
+    const filePath = buildFeedbackPath();
+    const feedbackData = extractFeedback(filePath);
+    const selectedFeedback = feedbackData.find(
+        (feedback) => feedback.id === feedbackId
+    );
+    res.status(200).json({ feedback: selectedFeedback });
+};
+
+export default handler;
+
+// /pages/feedback
+import { useState, Fragment } from 'react';
+import { buildFeedbackPath, extractFeedback } from '../api/feedback';
+
+const FeedbackPage = (props) => {
+    const [feedbackData, setFeedbackData] = useState();
+
+    const loadFeedbackHandler = (id) => {
+        fetch(`/api/${id}`)
+            .then((res) => res.json())
+            .then((data) => setFeedbackData(data.feedback))
+            .catch((err) => console.error(err));
+    };
+
+    return (
+        <Fragment>
+            {feedbackData && <p>{feedbackData.email}</p>}
+            <ul>
+                {props.feedbackItems.map((item) => (
+                    <li key={item.id}>
+                        {item.feedback}
+                        <button
+                            onClick={loadFeedbackHandler.bind(null, item.id)}
+                        >
+                            Show Details
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </Fragment>
+    );
+};
+
+export const getStaticProps = async () => {
+    // do not use fetch to access internal api
+    // only for external apis
+    const filePath = buildFeedbackPath();
+    const data = extractFeedback(filePath);
+    return {
+        props: {
+            feedbackItems: data,
+        },
+    };
+};
+
+export default FeedbackPage;
+```
+
+-   alternatively you can use the spread operator on the slug api to become a catch all dynamic api
+
+```
+[...feedbackId].js
+```
+
+-   nextjs always prioritizes the most specific file over dynamic file names
+-   there is some flexibility in structuring your api file structure, exactly the same as regular pages in nextjs
