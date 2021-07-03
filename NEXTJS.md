@@ -1029,3 +1029,12 @@ export default MyDocument;
 -   Adding and using API routes
 -   Working with Requests and Responses in API routes
 -   data is usually transfered in JSON format
+-   api files HAVE to be in a folder called api to be treated in a special way
+
+```javascript
+const handler = (req, res) => {
+    res.status(200).json({ message: 'This works!' });
+};
+
+export default handler;
+```
